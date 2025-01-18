@@ -19,12 +19,19 @@ const AIChat = () => {
   const chatRef = useRef(null);
   const [songUrl, setSongUrl] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const [fileTypes, setFileType] = useState("");
+  const [itemIds , setItemsIds]= useState("");
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+    if (fileTypes === "audio") {
+      pollMusicTaskId(itemIds).then((data) => setSongUrl(data));
+    }
+  }, [itemIds]);
 
   const simulateResponse = (fileType, data) => {
     setTimeout(() => {
@@ -47,15 +54,20 @@ const AIChat = () => {
         const response = await handleUserInput(input);
         const fileType = checkFileType(response[0]);
         simulateResponse(fileType, response);
+        setFileType(fileType);
+        setItemsIds(response[0]);
       } catch (error) {
         console.error("Error:", error);
       }
       setInput("");
+      setSongUrl([]);
+      // setItemsIds("");
       setLoading(false);
     }
   };
 
   const renderMessageContent = (content, fileType) => {
+    
     return content.map((item, index) => {
       if (fileType === "image") {
         return (
@@ -70,10 +82,9 @@ const AIChat = () => {
           </div>
         );
       } else if (fileType === "audio") {
-        pollMusicTaskId(item).then((data) => setSongUrl(data));
         return (
           <div className="w-[100%] flex justify-between flex-col lg:flex-row md:flex-row">
-            {songUrl?.map((url, index) => (
+            {songUrl.length > 0 && songUrl?.map((url, index) => (
               <div className="flex w-[100%] lg:w-[48%] md:w-[48%] bg-gradient-to-tr from-[#051206]/40 to-[#030A04]/40 border-spacing-3 border-secondary/40 py-8 rounded-2xl px-4 mb-4 flex-col m-4">
                 <div className="flex justify-between items-center">
                   <p className="text-sm text-white mb-2 ">Audio {index + 1}</p>
@@ -195,3 +206,5 @@ const AIChat = () => {
 };
 
 export default AIChat;
+
+
